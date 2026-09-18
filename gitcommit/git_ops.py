@@ -133,16 +133,18 @@ def make_commit(cfg: Config, message: str, when: datetime, dry_run: bool = False
 
     env = _push_env(cfg)
     paths = [cfg.journal_file]
-    state_rel = None
     try:
         state_file = cfg.state_path
-        if state_file.is_file() and cfg.repo_path in state_file.resolve().parents:
-            state_rel = str(state_file.resolve().relative_to(cfg.repo_path.resolve()))
-            paths.append(state_rel)
+        if state_file.is_file():
+            resolved = state_file.resolve()
+            repo = cfg.repo_path.resolve()
+            if repo == resolved or repo in resolved.parents:
+                paths.append(str(resolved.relative_to(repo)))
     except Exception:
         pass
 
-    _run(["git", "add", *paths], cwd=cfg.repo_path, env=env)
+    # -f so state.json is added even if a broad gitignore rule matches
+    _run(["git", "add", "-f", *paths], cwd=cfg.repo_path, env=env)
     _run(["git", "commit", "-m", message], cwd=cfg.repo_path, env=env)
     log.info("Committed: %s", message)
     return message

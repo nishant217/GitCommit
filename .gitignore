@@ -12,9 +12,10 @@ venv/
 PAUSED
 .cron.line
 
-# Local test/runtime data — Actions will recreate and commit state as needed
+# Cloud data dir: keep state tracked; ignore logs/pause flag
 .gitcommit-data/*
 !.gitcommit-data/.gitkeep
+!.gitcommit-data/state.json
 
 # Keep activity.log tracked; ignore other local logs
 *.log
