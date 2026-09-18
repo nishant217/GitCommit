@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.env
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+PAUSED
+.cron.line
+
+# Local test/runtime data — Actions will recreate and commit state as needed
+.gitcommit-data/*
+!.gitcommit-data/.gitkeep
+
+# Keep activity.log tracked; ignore other local logs
+*.log
+!activity.log

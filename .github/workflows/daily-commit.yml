@@ -1,0 +1,71 @@
+# Runs entirely on GitHub — your laptop can stay off.
+#
+# Setup (once):
+# 1. Push this project to a GitHub repo you own (default branch: main).
+# 2. Create a Personal Access Token (classic) with `repo` scope:
+#    GitHub → Settings → Developer settings → Personal access tokens
+# 3. Repo → Settings → Secrets and variables → Actions → New repository secret:
+#      GH_PAT                 = your personal access token  (NOT the default GITHUB_TOKEN)
+#      COMMIT_AUTHOR_NAME     = your GitHub display name
+#      COMMIT_AUTHOR_EMAIL    = email on your GitHub account (or users.noreply.github.com)
+# 4. Edit config.cloud.yaml (timezone, windows, skip days) and push.
+# 5. Actions tab → enable workflows if prompted.
+# 6. Optional: Run workflow manually via "Run workflow" to test.
+#
+# Why GH_PAT? The default GITHUB_TOKEN commits as github-actions[bot],
+# which does NOT count on your contribution graph. A PAT commits as you.
+
+name: Daily contribution commits
+
+on:
+  schedule:
+    # Hourly ticks during a wide UTC window. The bot only commits once the
+    # random local time for today has arrived (see config.cloud.yaml timezone).
+    # Covers roughly 08:00–23:00 Asia/Kolkata (UTC+5:30) → 02:30–17:30 UTC.
+    # Adjust the hour range if your timezone differs.
+    - cron: "12 3-17 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Commit immediately (ignore scheduled time)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gitcommit-daily
+  cancel-in-progress: false
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install bot
+        run: pip install -e .
+
+      - name: Run cloud job
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITCOMMIT_AUTHOR_NAME: ${{ secrets.COMMIT_AUTHOR_NAME }}
+          GITCOMMIT_AUTHOR_EMAIL: ${{ secrets.COMMIT_AUTHOR_EMAIL }}
+          GITCOMMIT_CONFIG: ${{ github.workspace }}/config.cloud.yaml
+          GITCOMMIT_BRANCH: ${{ github.ref_name }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force }}" = "true" ]; then
+            python -m gitcommit cloud-run --force
+          else
+            python -m gitcommit cloud-run
+          fi

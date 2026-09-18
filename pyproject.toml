@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gitcommit-bot"
+version = "1.0.0"
+description = "Randomized daily Git commits for a consistent contribution graph"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML>=6.0",
+  "click>=8.1",
+  "python-dotenv>=1.0",
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+  "jinja2>=3.1",
+  "tzdata>=2024.1",
+]
+
+[project.scripts]
+gitcommit = "gitcommit.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["gitcommit*"]
+
+[tool.setuptools.package-data]
+gitcommit = ["dashboard/templates/*.html"]

@@ -1,0 +1,45 @@
+# Cloud mode — used by GitHub Actions on this same repository.
+# Author name/email are overridden by Actions secrets (do not put secrets here).
+
+repo_path: .
+branch: main
+
+# Fallbacks only; prefer GITCOMMIT_AUTHOR_NAME / GITCOMMIT_AUTHOR_EMAIL secrets
+author_name: Nishant_Sharma
+author_email: 135382040+nishant217@users.noreply.github.com
+
+timezone: Asia/Kolkata
+
+commit_window_start: "09:00"
+commit_window_end: "23:00"
+
+min_commits: 1
+max_commits: 5
+
+# Keep short on Actions to save workflow minutes
+commit_spacing_min: 0
+commit_spacing_max: 1
+
+skip_days_min: 3
+skip_days_max: 4
+
+journal_file: activity.log
+missed_schedule: catch_up
+remote_url: ""
+
+commit_messages:
+  - "Update activity log"
+  - "Add daily notes"
+  - "Record progress"
+  - "Sync journal entry"
+  - "Refresh log"
+  - "Capture session notes"
+  - "Document today's work"
+  - "Minor log update"
+  - "Append journal entry"
+  - "Tidy activity notes"
+  - "Log checkpoint"
+  - "Update running notes"
+
+# State lives inside the repo so cloud runners share the month plan
+data_dir: .gitcommit-data

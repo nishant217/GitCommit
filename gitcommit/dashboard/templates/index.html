@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GitCommit Bot — {{ month_label }}</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --planned: #3d4f66;
+      --scheduled: #2b6cb0;
+      --completed: #2f855a;
+      --skipped: #744210;
+      --failed: #c53030;
+      --missed: #718096;
+      --today-ring: #63b3ed;
+      --accent: #68d391;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1a3a2a 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #1a2a44 0%, transparent 50%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      padding: 1.75rem 2rem 1rem;
+      border-bottom: 1px solid #243044;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+    header h1 span { color: var(--accent); }
+    header p {
+      margin: 0.4rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge.on { background: #276749; color: #c6f6d5; }
+    .badge.off { background: #744210; color: #fefcbf; }
+    main {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.25rem;
+      padding: 1.25rem 2rem 2rem;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; padding: 1rem; }
+    }
+    .panel {
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      border: 1px solid #2a3a52;
+      border-radius: 10px;
+      padding: 1.1rem 1.2rem;
+      backdrop-filter: blur(6px);
+    }
+    .panel h2 {
+      margin: 0 0 0.85rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .meta strong { color: var(--text); font-weight: 600; }
+    .cal {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.4rem;
+    }
+    .dow {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.25rem;
+    }
+    .cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      padding: 0.35rem;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--planned);
+      opacity: 0.35;
+      border: 2px solid transparent;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .cell.in { opacity: 1; }
+    .cell:hover.in { transform: translateY(-1px); }
+    .cell.today { border-color: var(--today-ring); box-shadow: 0 0 0 1px var(--today-ring); }
+    .cell.planned { background: var(--planned); }
+    .cell.scheduled { background: var(--scheduled); }
+    .cell.completed { background: var(--completed); }
+    .cell.skipped { background: var(--skipped); }
+    .cell.failed { background: var(--failed); }
+    .cell.missed { background: var(--missed); }
+    .cell .n { font-weight: 700; }
+    .cell .s { font-size: 0.65rem; opacity: 0.9; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1rem;
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .legend i {
+      display: inline-block;
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 3px;
+      margin-right: 0.35rem;
+      vertical-align: -1px;
+    }
+    .log {
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      max-height: 28rem;
+      overflow: auto;
+      background: #0b1018;
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: #a8b8d0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>GitCommit</span> Bot</h1>
+    <p>
+      {{ month_label }} · {{ timezone }} ·
+      {% if paused %}
+        <span class="badge off">Paused</span>
+      {% else %}
+        <span class="badge on">Active</span>
+      {% endif %}
+    </p>
+  </header>
+  <main>
+    <section class="panel">
+      <h2>Month calendar</h2>
+      <div class="meta">
+        <div>Repo: <strong>{{ repo }}</strong></div>
+        <div>Skip days: <strong>{{ skip_days|join(', ') if skip_days else 'none' }}</strong></div>
+        {% if today %}
+        <div>Today: <strong>{{ today.status }}</strong>
+          {% if today.scheduled_time %} @ {{ today.scheduled_time }}{% endif %}
+          {% if today.commits_made %} · {{ today.commits_made }} commit(s){% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="cal">
+        {% for d in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+          <div class="dow">{{ d }}</div>
+        {% endfor %}
+        {% for week in weeks %}
+          {% for cell in week %}
+            <div class="cell {% if cell.in_month %}in {{ cell.status }}{% endif %} {% if cell.is_today %}today{% endif %}"
+                 title="{{ cell.date.isoformat() }} — {{ cell.status }}{% if cell.scheduled_time %} @ {{ cell.scheduled_time }}{% endif %}">
+              {% if cell.in_month %}
+                <span class="n">{{ cell.day }}</span>
+                <span class="s">
+                  {% if cell.status == 'completed' %}✓{{ cell.commits_made }}
+                  {% elif cell.status == 'scheduled' %}{{ cell.scheduled_time or '…' }}
+                  {% elif cell.status == 'skipped' %}skip
+                  {% elif cell.status == 'failed' %}fail
+                  {% elif cell.status == 'missed' %}miss
+                  {% else %}·{% endif %}
+                </span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--planned)"></i>planned</span>
+        <span><i style="background:var(--scheduled)"></i>scheduled</span>
+        <span><i style="background:var(--completed)"></i>completed</span>
+        <span><i style="background:var(--skipped)"></i>skipped</span>
+        <span><i style="background:var(--failed)"></i>failed</span>
+        <span><i style="background:var(--missed)"></i>missed</span>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Recent log</h2>
+      <div class="log">{% for line in logs %}{{ line }}
+{% else %}(no log entries yet){% endfor %}</div>
+    </section>
+  </main>
+</body>
+</html>

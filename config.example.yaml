@@ -1,0 +1,60 @@
+# Local path to the git repository that receives commits
+repo_path: ~/git-activity
+
+# Branch to commit and push to
+branch: main
+
+# Must match your GitHub account for contribution credit
+author_name: Your Name
+author_email: you@users.noreply.github.com
+
+# Timezone for scheduling (IANA name, e.g. America/New_York, Asia/Kolkata)
+timezone: Asia/Kolkata
+
+# Random commit window (local time, 24h)
+commit_window_start: "09:00"
+commit_window_end: "23:00"
+
+# Commits per active day (inclusive)
+min_commits: 1
+max_commits: 5
+
+# Minutes between commits on the same day
+commit_spacing_min: 2
+commit_spacing_max: 8
+
+# Skip days per month (fixed at month start)
+skip_days_min: 3
+skip_days_max: 4
+
+# File inside the repo that receives timestamped journal entries
+journal_file: activity.log
+
+# Missed schedule: "skip" | "catch_up"
+# skip     – if machine was off at scheduled time, do nothing for that day
+# catch_up – on next startup/cron run, execute any missed active day for today
+missed_schedule: catch_up
+
+# Authentication: leave empty to use SSH remotes / existing git credentials.
+# For HTTPS + PAT, set GITHUB_TOKEN in the environment (never put tokens here).
+# remote_url is optional; if set, ensures origin points here.
+remote_url: ""
+
+# Varied, natural-looking commit messages (picked at random)
+commit_messages:
+  - "Update activity log"
+  - "Add daily notes"
+  - "Record progress"
+  - "Sync journal entry"
+  - "Refresh log"
+  - "Capture session notes"
+  - "Document today's work"
+  - "Minor log update"
+  - "Append journal entry"
+  - "Tidy activity notes"
+  - "Log checkpoint"
+  - "Update running notes"
+
+# Paths (relative to app data dir, or absolute)
+# Default data dir: ~/.gitcommit-bot
+data_dir: ""
