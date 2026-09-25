@@ -136,25 +136,22 @@ def _commit_state_sidecar(cfg: Config) -> None:
             "GIT_COMMITTER_NAME": cfg.author_name,
             "GIT_COMMITTER_EMAIL": cfg.author_email,
         }
+        # Persist state only; runtime logs must remain ignored.
         git_ops._run(
-            ["git", "add", state_rel, ".gitcommit-data/gitcommit.log"],
+            ["git", "add", "-f", "--", state_rel],
             cwd=cfg.repo_path,
             env=env,
-            check=False,
         )
         status = git_ops._run(
-            ["git", "status", "--porcelain", state_rel],
+            ["git", "diff", "--cached", "--name-only", "--", state_rel],
             cwd=cfg.repo_path,
-            check=False,
         )
         if not (status.stdout or "").strip():
             return
-        # State usually already included if journal commit ran; only needed if push-only
         git_ops._run(
-            ["git", "commit", "-m", "chore: sync gitcommit state"],
+            ["git", "commit", "--only", "-m", "chore: sync gitcommit state", "--", state_rel],
             cwd=cfg.repo_path,
             env=env,
-            check=False,
         )
         try:
             git_ops.push(cfg)
